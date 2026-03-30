@@ -1,0 +1,171 @@
+
+<style>
+  .card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; }
+  .metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.75rem 1rem; }
+  .metric-label { font-size: 12px; color: var(--color-text-secondary); margin: 0 0 4px; }
+  .metric-value { font-size: 20px; font-weight: 500; color: var(--color-text-primary); margin: 0; }
+  .metric-value.green { color: #0F6E56; }
+  .metric-value.red { color: #A32D2D; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .section-title { font-size: 14px; font-weight: 500; color: var(--color-text-secondary); margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: var(--border-radius-md); margin-left: 6px; }
+  .badge-green { background: #E1F5EE; color: #0F6E56; }
+  .badge-red { background: #FCEBEB; color: #A32D2D; }
+  .slider-row { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; }
+  .slider-row label { font-size: 13px; color: var(--color-text-secondary); min-width: 90px; }
+  .slider-row input[type=range] { flex: 1; }
+  .slider-row span { font-size: 14px; font-weight: 500; min-width: 70px; text-align: right; color: var(--color-text-primary); }
+  .divider { border: none; border-top: 0.5px solid var(--color-border-tertiary); margin: 1rem 0; }
+  .comparison-bar { height: 12px; border-radius: 6px; margin-top: 6px; }
+  .row-label { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 2px; }
+</style>
+
+<div style="padding: 1rem 0;">
+  <div class="card" style="margin-bottom: 1rem;">
+    <p class="section-title">Loan settings</p>
+    <div class="slider-row">
+      <label>Principal</label>
+      <input type="range" id="principal" min="100000" max="5000000" step="100000" value="1000000">
+      <span id="principal-out">₹10,00,000</span>
+    </div>
+    <div class="slider-row">
+      <label>Interest rate</label>
+      <input type="range" id="rate" min="6" max="24" step="0.5" value="10">
+      <span id="rate-out">10%</span>
+    </div>
+    <div class="slider-row">
+      <label>Tenure</label>
+      <input type="range" id="tenure" min="1" max="30" step="1" value="5">
+      <span id="tenure-out">5 yrs</span>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+    <div class="card">
+      <p class="section-title">Flat rate <span class="badge badge-red">Costly</span></p>
+      <div class="grid2" style="margin-bottom: 10px;">
+        <div class="metric">
+          <p class="metric-label">Monthly EMI</p>
+          <p class="metric-value red" id="flat-emi">—</p>
+        </div>
+        <div class="metric">
+          <p class="metric-label">Total interest</p>
+          <p class="metric-value red" id="flat-interest">—</p>
+        </div>
+      </div>
+      <div class="metric">
+        <p class="metric-label">Total amount paid</p>
+        <p class="metric-value" id="flat-total">—</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="section-title">Reducing rate <span class="badge badge-green">Cheaper</span></p>
+      <div class="grid2" style="margin-bottom: 10px;">
+        <div class="metric">
+          <p class="metric-label">Monthly EMI</p>
+          <p class="metric-value green" id="red-emi">—</p>
+        </div>
+        <div class="metric">
+          <p class="metric-label">Total interest</p>
+          <p class="metric-value green" id="red-interest">—</p>
+        </div>
+      </div>
+      <div class="metric">
+        <p class="metric-label">Total amount paid</p>
+        <p class="metric-value" id="red-total">—</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 1rem;">
+    <p class="section-title">You save with reducing rate</p>
+    <div class="grid2">
+      <div class="metric">
+        <p class="metric-label">Extra interest (flat vs reducing)</p>
+        <p class="metric-value red" id="extra-interest">—</p>
+      </div>
+      <div class="metric">
+        <p class="metric-label">Lower EMI by</p>
+        <p class="metric-value green" id="emi-diff">—</p>
+      </div>
+    </div>
+
+    <hr class="divider">
+    <p class="row-label">Interest burden comparison</p>
+    <div style="margin-bottom: 6px;">
+      <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 2px;">
+        <span>Flat rate interest</span><span id="flat-pct">—</span>
+      </div>
+      <div class="comparison-bar" id="flat-bar" style="background: #F09595;"></div>
+    </div>
+    <div>
+      <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 2px;">
+        <span>Reducing rate interest</span><span id="red-pct">—</span>
+      </div>
+      <div class="comparison-bar" id="red-bar" style="background: #5DCAA5;"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+function fmt(n) {
+  return '₹' + Math.round(n).toLocaleString('en-IN');
+}
+
+function calc() {
+  const P = parseFloat(document.getElementById('principal').value);
+  const annualRate = parseFloat(document.getElementById('rate').value);
+  const years = parseFloat(document.getElementById('tenure').value);
+  const n = years * 12;
+
+  document.getElementById('principal-out').textContent = fmt(P);
+  document.getElementById('rate-out').textContent = annualRate + '%';
+  document.getElementById('tenure-out').textContent = years + ' yr' + (years > 1 ? 's' : '');
+
+  // Flat rate
+  const flatInterest = P * (annualRate / 100) * years;
+  const flatTotal = P + flatInterest;
+  const flatEMI = flatTotal / n;
+
+  // Reducing balance (standard EMI formula)
+  const r = annualRate / 100 / 12;
+  let redEMI, redInterest, redTotal;
+  if (r === 0) {
+    redEMI = P / n;
+    redInterest = 0;
+  } else {
+    redEMI = P * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+    redTotal = redEMI * n;
+    redInterest = redTotal - P;
+  }
+  redTotal = redEMI * n;
+  redInterest = redTotal - P;
+
+  document.getElementById('flat-emi').textContent = fmt(flatEMI);
+  document.getElementById('flat-interest').textContent = fmt(flatInterest);
+  document.getElementById('flat-total').textContent = fmt(flatTotal);
+
+  document.getElementById('red-emi').textContent = fmt(redEMI);
+  document.getElementById('red-interest').textContent = fmt(redInterest);
+  document.getElementById('red-total').textContent = fmt(redTotal);
+
+  document.getElementById('extra-interest').textContent = fmt(flatInterest - redInterest);
+  document.getElementById('emi-diff').textContent = fmt(flatEMI - redEMI);
+
+  const flatPct = Math.round((flatInterest / P) * 100);
+  const redPct = Math.round((redInterest / P) * 100);
+  document.getElementById('flat-pct').textContent = flatPct + '% of principal';
+  document.getElementById('red-pct').textContent = redPct + '% of principal';
+
+  const maxPct = Math.max(flatPct, redPct);
+  document.getElementById('flat-bar').style.width = Math.round((flatPct / maxPct) * 100) + '%';
+  document.getElementById('red-bar').style.width = Math.round((redPct / maxPct) * 100) + '%';
+}
+
+['principal','rate','tenure'].forEach(id => {
+  document.getElementById(id).addEventListener('input', calc);
+});
+calc();
+</script>
