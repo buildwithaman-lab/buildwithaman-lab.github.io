@@ -1,171 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EMI Calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-<style>
-  .card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; }
-  .metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.75rem 1rem; }
-  .metric-label { font-size: 12px; color: var(--color-text-secondary); margin: 0 0 4px; }
-  .metric-value { font-size: 20px; font-weight: 500; color: var(--color-text-primary); margin: 0; }
-  .metric-value.green { color: #0F6E56; }
-  .metric-value.red { color: #A32D2D; }
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-  .section-title { font-size: 14px; font-weight: 500; color: var(--color-text-secondary); margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.5px; }
-  .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: var(--border-radius-md); margin-left: 6px; }
-  .badge-green { background: #E1F5EE; color: #0F6E56; }
-  .badge-red { background: #FCEBEB; color: #A32D2D; }
-  .slider-row { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; }
-  .slider-row label { font-size: 13px; color: var(--color-text-secondary); min-width: 90px; }
-  .slider-row input[type=range] { flex: 1; }
-  .slider-row span { font-size: 14px; font-weight: 500; min-width: 70px; text-align: right; color: var(--color-text-primary); }
-  .divider { border: none; border-top: 0.5px solid var(--color-border-tertiary); margin: 1rem 0; }
-  .comparison-bar { height: 12px; border-radius: 6px; margin-top: 6px; }
-  .row-label { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 2px; }
-</style>
+    :root {
+      --bg:        #0a0a0f;
+      --bg2:       #10101a;
+      --bg3:       #16162a;
+      --border:    rgba(120, 80, 255, 0.18);
+      --border2:   rgba(120, 80, 255, 0.35);
+      --neon:      #7c3aff;
+      --neon2:     #a855f7;
+      --cyan:      #22d3ee;
+      --green:     #34d399;
+      --red:       #f87171;
+      --text:      #e2e8f0;
+      --text2:     #94a3b8;
+      --text3:     #64748b;
+      --font-mono: 'Space Mono', monospace;
+      --font-head: 'Syne', sans-serif;
+      --glow:      0 0 30px rgba(124, 58, 255, 0.25);
+      --glow-sm:   0 0 12px rgba(124, 58, 255, 0.2);
+    }
 
-<div style="padding: 1rem 0;">
-  <div class="card" style="margin-bottom: 1rem;">
-    <p class="section-title">Loan settings</p>
-    <div class="slider-row">
-      <label>Principal</label>
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-head);
+      min-height: 100vh;
+      padding: 2rem 1rem 4rem;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* ─── Background Grid & Glow ─── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(124,58,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124,58,255,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      top: -20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 500px;
+      background: radial-gradient(ellipse, rgba(124,58,255,0.12) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    /* ─── Header ─── */
+    .header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      animation: fadeDown 0.7s ease both;
+    }
+
+    .header-tag {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--neon2);
+      border: 1px solid var(--border2);
+      padding: 4px 14px;
+      border-radius: 100px;
+      margin-bottom: 1rem;
+      background: rgba(124,58,255,0.08);
+    }
+
+    .header h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1.1;
+      background: linear-gradient(135deg, #fff 30%, var(--neon2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header p {
+      margin-top: 0.6rem;
+      font-size: 14px;
+      color: var(--text3);
+      font-family: var(--font-mono);
+    }
+
+    /* ─── Cards ─── */
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .card:hover {
+      border-color: var(--border2);
+      box-shadow: var(--glow);
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--neon), transparent);
+      opacity: 0.5;
+    }
+
+    .card-label {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ─── Sliders ─── */
+    .slider-block {
+      margin-bottom: 1.4rem;
+    }
+
+    .slider-block:last-child { margin-bottom: 0; }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 0.5rem;
+    }
+
+    .slider-header .s-label {
+      font-size: 12px;
+      font-family: var(--font-mono);
+      color: var(--text2);
+      letter-spacing: 0.5px;
+    }
+
+    .slider-header .s-value {
+      font-size: 17px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      color: var(--text);
+      letter-spacing: -0.5px;
+      transition: color 0.2s;
+    }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--bg3);
+      outline: none;
+      cursor: pointer;
+      position: relative;
+    }
+
+    input[type=range]::-webkit-slider-runnable-track {
+      height: 4px;
+      border-radius: 2px;
+      background: linear-gradient(90deg, var(--neon) var(--pct, 20%), var(--bg3) var(--pct, 20%));
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid var(--neon);
+      box-shadow: 0 0 10px rgba(124,58,255,0.6), 0 0 0 4px rgba(124,58,255,0.12);
+      margin-top: -7px;
+      transition: box-shadow 0.2s, transform 0.2s;
+      cursor: grab;
+    }
+
+    input[type=range]:active::-webkit-slider-thumb {
+      cursor: grabbing;
+      transform: scale(1.15);
+      box-shadow: 0 0 16px rgba(124,58,255,0.8), 0 0 0 6px rgba(124,58,255,0.18);
+    }
+
+    input[type=range]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid var(--neon);
+      box-shadow: 0 0 10px rgba(124,58,255,0.6);
+      cursor: grab;
+    }
+
+    /* ─── Results Grid ─── */
+    .results-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 600px) {
+      .results-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ─── Result Card ─── */
+    .result-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+      animation: fadeUp 0.5s ease both;
+      transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+    }
+
+    .result-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--glow);
+    }
+
+    .result-card.flat {
+      border-top: 2px solid rgba(248, 113, 113, 0.4);
+    }
+
+    .result-card.reducing {
+      border-top: 2px solid rgba(52, 211, 153, 0.4);
+    }
+
+    .result-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+
+    .result-title {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text3);
+    }
+
+    .badge {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      padding: 3px 10px;
+      border-radius: 100px;
+      letter-spacing: 1px;
+    }
+
+    .badge-red { background: rgba(248,113,113,0.1); color: var(--red); border: 1px solid rgba(248,113,113,0.25); }
+    .badge-green { background: rgba(52,211,153,0.1); color: var(--green); border: 1px solid rgba(52,211,153,0.25); }
+
+    .metric-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .metric {
+      background: var(--bg3);
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+      border: 1px solid rgba(255,255,255,0.04);
+      transition: background 0.2s;
+    }
+
+    .metric:hover { background: rgba(255,255,255,0.04); }
+
+    .metric-label {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--text3);
+      letter-spacing: 1px;
+      margin-bottom: 5px;
+    }
+
+    .metric-value {
+      font-size: 18px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      color: var(--text);
+      letter-spacing: -0.5px;
+    }
+
+    .metric-value.red { color: var(--red); text-shadow: 0 0 12px rgba(248,113,113,0.3); }
+    .metric-value.green { color: var(--green); text-shadow: 0 0 12px rgba(52,211,153,0.3); }
+
+    .metric-full {
+      background: var(--bg3);
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+      border: 1px solid rgba(255,255,255,0.04);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .metric-full .metric-label { margin-bottom: 0; }
+
+    /* ─── Savings Card ─── */
+    .savings-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1.5rem;
+      margin-top: 1rem;
+      position: relative;
+      overflow: hidden;
+      animation: fadeUp 0.6s ease both;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .savings-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+      opacity: 0.5;
+    }
+
+    .savings-card:hover {
+      border-color: rgba(34,211,238,0.3);
+      box-shadow: 0 0 30px rgba(34,211,238,0.1);
+    }
+
+    .savings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 1.25rem;
+    }
+
+    @media (max-width: 480px) {
+      .savings-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ─── Progress Bars ─── */
+    .bar-section { margin-top: 0.25rem; }
+
+    .bar-row { margin-bottom: 1rem; }
+    .bar-row:last-child { margin-bottom: 0; }
+
+    .bar-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text3);
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    .bar-track {
+      height: 8px;
+      background: var(--bg3);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .bar-fill.red {
+      background: linear-gradient(90deg, #f87171, #ef4444);
+      box-shadow: 0 0 8px rgba(248,113,113,0.4);
+    }
+
+    .bar-fill.green {
+      background: linear-gradient(90deg, #34d399, #10b981);
+      box-shadow: 0 0 8px rgba(52,211,153,0.4);
+    }
+
+    /* ─── Divider ─── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 1.25rem 0;
+    }
+
+    /* ─── Animations ─── */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── Glow Dot Decoration ─── */
+    .glow-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-right: 8px;
+      flex-shrink: 0;
+    }
+    .glow-dot.red { background: var(--red); box-shadow: 0 0 6px var(--red); }
+    .glow-dot.green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .glow-dot.cyan { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
+
+    /* Subtle number update flash */
+    @keyframes numFlash {
+      0%   { opacity: 0.4; }
+      100% { opacity: 1; }
+    }
+    .flash { animation: numFlash 0.25s ease; }
+
+    /* ─── Principal Text Input ─── */
+    .principal-input-wrap {
+      display: flex;
+      align-items: center;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0 12px;
+      margin-bottom: 0.75rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .principal-input-wrap:focus-within {
+      border-color: var(--neon);
+      box-shadow: 0 0 0 3px rgba(124,58,255,0.15);
+    }
+    .principal-input-wrap .rupee {
+      font-family: var(--font-mono);
+      font-size: 15px;
+      color: var(--text3);
+      margin-right: 6px;
+      user-select: none;
+    }
+    .principal-input-wrap input[type=number] {
+      background: transparent;
+      border: none;
+      outline: none;
+      width: 100%;
+      font-family: var(--font-mono);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      padding: 10px 0;
+      -moz-appearance: textfield;
+    }
+    .principal-input-wrap input[type=number]::-webkit-outer-spin-button,
+    .principal-input-wrap input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+    /* ─── Footer ─── */
+    .footer {
+      text-align: center;
+      margin-top: 2rem;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text3);
+      letter-spacing: 2px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrapper">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-tag">// financial tool</div>
+    <h1>EMI Calculator</h1>
+    <p>flat rate &nbsp;vs&nbsp; reducing balance</p>
+  </div>
+
+  <!-- Controls Card -->
+  <div class="card" style="animation: fadeUp 0.4s ease both;">
+    <div class="card-label">Loan Parameters</div>
+
+    <div class="slider-block">
+      <div class="slider-header">
+        <span class="s-label">Principal Amount</span>
+      </div>
+      <div class="principal-input-wrap">
+        <span class="rupee">₹</span>
+        <input type="number" id="principal-text" min="1000" max="100000000" step="1000" value="1000000" placeholder="Enter amount">
+      </div>
       <input type="range" id="principal" min="100000" max="5000000" step="100000" value="1000000">
-      <span id="principal-out">₹10,00,000</span>
     </div>
-    <div class="slider-row">
-      <label>Interest rate</label>
-      <input type="range" id="rate" min="6" max="24" step="0.5" value="10">
-      <span id="rate-out">10%</span>
+
+    <div class="slider-block">
+      <div class="slider-header">
+        <span class="s-label">Annual Interest Rate</span>
+      </div>
+      <div class="principal-input-wrap">
+        <input type="number" id="rate-text" min="1" max="30" step="0.1" value="10" placeholder="Enter rate">
+        <span class="rupee">%</span>
+      </div>
+      <input type="range" id="rate" min="1" max="30" step="0.1" value="10">
     </div>
-    <div class="slider-row">
-      <label>Tenure</label>
+
+    <div class="slider-block" style="margin-bottom:0">
+      <div class="slider-header">
+        <span class="s-label">Loan Tenure</span>
+      </div>
+      <div class="principal-input-wrap">
+        <input type="number" id="tenure-text" min="1" max="30" step="1" value="5" placeholder="Enter years">
+        <span class="rupee">yrs</span>
+      </div>
       <input type="range" id="tenure" min="1" max="30" step="1" value="5">
-      <span id="tenure-out">5 yrs</span>
     </div>
   </div>
 
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-    <div class="card">
-      <p class="section-title">Flat rate <span class="badge badge-red">Costly</span></p>
-      <div class="grid2" style="margin-bottom: 10px;">
+  <!-- Results Row -->
+  <div class="results-grid">
+
+    <!-- Flat Rate -->
+    <div class="result-card flat" style="animation-delay:0.05s">
+      <div class="result-card-header">
+        <span class="result-title"><span class="glow-dot red"></span>Flat Rate</span>
+        <span class="badge badge-red">costly</span>
+      </div>
+      <div class="metric-row">
         <div class="metric">
-          <p class="metric-label">Monthly EMI</p>
-          <p class="metric-value red" id="flat-emi">—</p>
+          <div class="metric-label">Monthly EMI</div>
+          <div class="metric-value red" id="flat-emi">—</div>
         </div>
         <div class="metric">
-          <p class="metric-label">Total interest</p>
-          <p class="metric-value red" id="flat-interest">—</p>
+          <div class="metric-label">Total Interest</div>
+          <div class="metric-value red" id="flat-interest">—</div>
         </div>
       </div>
-      <div class="metric">
-        <p class="metric-label">Total amount paid</p>
-        <p class="metric-value" id="flat-total">—</p>
+      <div class="metric-full">
+        <span class="metric-label">Total Paid</span>
+        <span class="metric-value" id="flat-total">—</span>
       </div>
     </div>
 
-    <div class="card">
-      <p class="section-title">Reducing rate <span class="badge badge-green">Cheaper</span></p>
-      <div class="grid2" style="margin-bottom: 10px;">
+    <!-- Reducing Rate -->
+    <div class="result-card reducing" style="animation-delay:0.1s">
+      <div class="result-card-header">
+        <span class="result-title"><span class="glow-dot green"></span>Reducing Rate</span>
+        <span class="badge badge-green">cheaper</span>
+      </div>
+      <div class="metric-row">
         <div class="metric">
-          <p class="metric-label">Monthly EMI</p>
-          <p class="metric-value green" id="red-emi">—</p>
+          <div class="metric-label">Monthly EMI</div>
+          <div class="metric-value green" id="red-emi">—</div>
         </div>
         <div class="metric">
-          <p class="metric-label">Total interest</p>
-          <p class="metric-value green" id="red-interest">—</p>
+          <div class="metric-label">Total Interest</div>
+          <div class="metric-value green" id="red-interest">—</div>
         </div>
       </div>
-      <div class="metric">
-        <p class="metric-label">Total amount paid</p>
-        <p class="metric-value" id="red-total">—</p>
+      <div class="metric-full">
+        <span class="metric-label">Total Paid</span>
+        <span class="metric-value" id="red-total">—</span>
       </div>
     </div>
+
   </div>
 
-  <div class="card" style="margin-top: 1rem;">
-    <p class="section-title">You save with reducing rate</p>
-    <div class="grid2">
+  <!-- Savings Card -->
+  <div class="savings-card">
+    <div class="card-label"><span class="glow-dot cyan"></span>Savings with Reducing Rate</div>
+
+    <div class="savings-grid">
       <div class="metric">
-        <p class="metric-label">Extra interest (flat vs reducing)</p>
-        <p class="metric-value red" id="extra-interest">—</p>
+        <div class="metric-label">Extra Interest (Flat)</div>
+        <div class="metric-value red" id="extra-interest">—</div>
       </div>
       <div class="metric">
-        <p class="metric-label">Lower EMI by</p>
-        <p class="metric-value green" id="emi-diff">—</p>
+        <div class="metric-label">Lower EMI by</div>
+        <div class="metric-value green" id="emi-diff">—</div>
       </div>
     </div>
 
     <hr class="divider">
-    <p class="row-label">Interest burden comparison</p>
-    <div style="margin-bottom: 6px;">
-      <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 2px;">
-        <span>Flat rate interest</span><span id="flat-pct">—</span>
+
+    <div class="bar-section">
+      <div class="bar-row">
+        <div class="bar-header">
+          <span>Flat rate interest burden</span>
+          <span id="flat-pct">—</span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill red" id="flat-bar" style="width:0%"></div>
+        </div>
       </div>
-      <div class="comparison-bar" id="flat-bar" style="background: #F09595;"></div>
-    </div>
-    <div>
-      <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 2px;">
-        <span>Reducing rate interest</span><span id="red-pct">—</span>
+      <div class="bar-row">
+        <div class="bar-header">
+          <span>Reducing rate interest burden</span>
+          <span id="red-pct">—</span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill green" id="red-bar" style="width:0%"></div>
+        </div>
       </div>
-      <div class="comparison-bar" id="red-bar" style="background: #5DCAA5;"></div>
     </div>
   </div>
+
+  <div class="footer">built for clarity &nbsp;·&nbsp; loan emi tool</div>
+
 </div>
 
 <script>
-function fmt(n) {
-  return '₹' + Math.round(n).toLocaleString('en-IN');
-}
-
-function calc() {
-  const P = parseFloat(document.getElementById('principal').value);
-  const annualRate = parseFloat(document.getElementById('rate').value);
-  const years = parseFloat(document.getElementById('tenure').value);
-  const n = years * 12;
-
-  document.getElementById('principal-out').textContent = fmt(P);
-  document.getElementById('rate-out').textContent = annualRate + '%';
-  document.getElementById('tenure-out').textContent = years + ' yr' + (years > 1 ? 's' : '');
-
-  // Flat rate
-  const flatInterest = P * (annualRate / 100) * years;
-  const flatTotal = P + flatInterest;
-  const flatEMI = flatTotal / n;
-
-  // Reducing balance (standard EMI formula)
-  const r = annualRate / 100 / 12;
-  let redEMI, redInterest, redTotal;
-  if (r === 0) {
-    redEMI = P / n;
-    redInterest = 0;
-  } else {
-    redEMI = P * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
-    redTotal = redEMI * n;
-    redInterest = redTotal - P;
+  function fmt(n) {
+    return '₹' + Math.round(n).toLocaleString('en-IN');
   }
-  redTotal = redEMI * n;
-  redInterest = redTotal - P;
 
-  document.getElementById('flat-emi').textContent = fmt(flatEMI);
-  document.getElementById('flat-interest').textContent = fmt(flatInterest);
-  document.getElementById('flat-total').textContent = fmt(flatTotal);
+  function flashEl(id) {
+    const el = document.getElementById(id);
+    el.classList.remove('flash');
+    void el.offsetWidth;
+    el.classList.add('flash');
+  }
 
-  document.getElementById('red-emi').textContent = fmt(redEMI);
-  document.getElementById('red-interest').textContent = fmt(redInterest);
-  document.getElementById('red-total').textContent = fmt(redTotal);
+  function updateSliderTrack(el) {
+    const min = parseFloat(el.min), max = parseFloat(el.max), val = parseFloat(el.value);
+    const pct = ((val - min) / (max - min)) * 100;
+    el.style.setProperty('--pct', pct + '%');
+    // For webkit track gradient fallback via JS
+    el.style.background = `linear-gradient(90deg, var(--neon) ${pct}%, var(--bg3) ${pct}%)`;
+  }
 
-  document.getElementById('extra-interest').textContent = fmt(flatInterest - redInterest);
-  document.getElementById('emi-diff').textContent = fmt(flatEMI - redEMI);
+  function calc() {
+    const P       = parseFloat(document.getElementById('principal-text').value) || 0;
+    const annual  = parseFloat(document.getElementById('rate-text').value) || 0;
+    const years   = parseFloat(document.getElementById('tenure-text').value) || 1;
+    const n       = years * 12;
 
-  const flatPct = Math.round((flatInterest / P) * 100);
-  const redPct = Math.round((redInterest / P) * 100);
-  document.getElementById('flat-pct').textContent = flatPct + '% of principal';
-  document.getElementById('red-pct').textContent = redPct + '% of principal';
+    // Flat rate
+    const flatInterest = P * (annual / 100) * years;
+    const flatTotal    = P + flatInterest;
+    const flatEMI      = flatTotal / n;
 
-  const maxPct = Math.max(flatPct, redPct);
-  document.getElementById('flat-bar').style.width = Math.round((flatPct / maxPct) * 100) + '%';
-  document.getElementById('red-bar').style.width = Math.round((redPct / maxPct) * 100) + '%';
-}
+    // Reducing balance
+    const r = annual / 100 / 12;
+    let redEMI, redInterest, redTotal;
+    if (r === 0) {
+      redEMI = P / n; redInterest = 0;
+    } else {
+      redEMI = P * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+    }
+    redTotal    = redEMI * n;
+    redInterest = redTotal - P;
 
-['principal','rate','tenure'].forEach(id => {
-  document.getElementById(id).addEventListener('input', calc);
-});
-calc();
+    const ids = ['flat-emi','flat-interest','flat-total','red-emi','red-interest','red-total','extra-interest','emi-diff'];
+    ids.forEach(flashEl);
+
+    document.getElementById('flat-emi').textContent      = fmt(flatEMI);
+    document.getElementById('flat-interest').textContent = fmt(flatInterest);
+    document.getElementById('flat-total').textContent    = fmt(flatTotal);
+    document.getElementById('red-emi').textContent       = fmt(redEMI);
+    document.getElementById('red-interest').textContent  = fmt(redInterest);
+    document.getElementById('red-total').textContent     = fmt(redTotal);
+    document.getElementById('extra-interest').textContent= fmt(flatInterest - redInterest);
+    document.getElementById('emi-diff').textContent      = fmt(flatEMI - redEMI);
+
+    const flatPct = Math.round((flatInterest / P) * 100);
+    const redPct  = Math.round((redInterest  / P) * 100);
+    document.getElementById('flat-pct').textContent = flatPct + '% of principal';
+    document.getElementById('red-pct').textContent  = redPct  + '% of principal';
+
+    const maxPct = Math.max(flatPct, redPct, 1);
+    document.getElementById('flat-bar').style.width = Math.round((flatPct / maxPct) * 100) + '%';
+    document.getElementById('red-bar').style.width  = Math.round((redPct  / maxPct) * 100) + '%';
+  }
+
+  function syncPair(sliderId, textId) {
+    const sl = document.getElementById(sliderId);
+    const tx = document.getElementById(textId);
+    updateSliderTrack(sl);
+    sl.addEventListener('input', () => {
+      tx.value = sl.value;
+      updateSliderTrack(sl);
+      calc();
+    });
+    tx.addEventListener('input', () => {
+      const val = parseFloat(tx.value) || 0;
+      sl.value = Math.min(Math.max(val, parseFloat(sl.min)), parseFloat(sl.max));
+      updateSliderTrack(sl);
+      calc();
+    });
+  }
+
+  syncPair('principal', 'principal-text');
+  syncPair('rate',      'rate-text');
+  syncPair('tenure',    'tenure-text');
+  calc();
 </script>
+</body>
+</html>
