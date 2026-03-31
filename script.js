@@ -323,3 +323,48 @@ window.addEventListener('scroll', () => {
   const pct = (scrolled / maxScroll) * 100;
   bar.style.width = pct + '%';
 });
+
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   LOADING SCREEN — appended below existing code
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+(function () {
+  const overlay  = document.getElementById('loaderOverlay');
+  const barFill  = document.getElementById('loaderBarFill');
+
+  if (!overlay || !barFill) return;
+
+  /* Total loader duration = 2400ms fill + 750ms slide-out */
+  const DURATION = 2400;   // ms for bar to go 0 → 100%
+  const INTERVAL = 18;     // tick every 18ms (≈60fps)
+  const STEPS    = DURATION / INTERVAL;
+
+  let current = 0;
+
+  /* Eased fill — starts fast, eases near the end for premium feel */
+  function easeOutExpo(t) {
+    return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+  }
+
+  const ticker = setInterval(() => {
+    current++;
+    const progress = easeOutExpo(current / STEPS);
+    barFill.style.width = (progress * 100) + '%';
+
+    if (current >= STEPS) {
+      clearInterval(ticker);
+      barFill.style.width = '100%';
+
+      /* Small pause at 100% before sliding out */
+      setTimeout(() => {
+        overlay.classList.add('slide-out');
+
+        /* Remove from DOM after animation finishes */
+        setTimeout(() => {
+          overlay.style.display = 'none';
+        }, 800);
+      }, 220);
+    }
+  }, INTERVAL);
+})();
