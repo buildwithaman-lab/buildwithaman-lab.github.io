@@ -64,7 +64,6 @@ class Particle {
     this.pulse  = Math.random() * Math.PI * 2;
     this.pulseSpeed = Math.random() * 0.02 + 0.005;
 
-    // Random neon color
     const colors = ['168,85,247', '59,130,246', '6,182,212', '99,102,241'];
     this.color = colors[Math.floor(Math.random() * colors.length)];
   }
@@ -98,7 +97,6 @@ function initParticles() {
 }
 initParticles();
 
-// Connection lines between nearby particles
 function drawConnections() {
   const maxDist = 100;
   for (let i = 0; i < particles.length; i++) {
@@ -144,7 +142,6 @@ const navLinks  = document.getElementById('navLinks');
 
 hamburger.addEventListener('click', () => {
   navLinks.classList.toggle('open');
-  // Animate hamburger bars
   const spans = hamburger.querySelectorAll('span');
   if (navLinks.classList.contains('open')) {
     spans[0].style.transform = 'rotate(45deg) translate(5px, 5px)';
@@ -155,7 +152,6 @@ hamburger.addEventListener('click', () => {
   }
 });
 
-// Close on nav link click
 document.querySelectorAll('.nav-link').forEach(link => {
   link.addEventListener('click', () => {
     navLinks.classList.remove('open');
@@ -196,12 +192,11 @@ document.querySelectorAll('.skill-category').forEach(el => skillObserver.observe
 
 /* ─── STAT COUNTER ─── */
 function animateCounter(el) {
-  const target = parseInt(el.getAttribute('data-target'));
+  const target   = parseInt(el.getAttribute('data-target'));
   const duration = 1500;
-  const step = target / (duration / 16);
-  let current = 0;
-
-  const update = () => {
+  const step     = target / (duration / 16);
+  let current    = 0;
+  const update   = () => {
     current += step;
     if (current < target) {
       el.textContent = Math.floor(current);
@@ -233,11 +228,8 @@ contactForm.addEventListener('submit', (e) => {
   e.preventDefault();
   const btn  = contactForm.querySelector('.btn-primary');
   const text = btn.querySelector('.btn-text');
-
-  // Simulate sending
   text.textContent = 'Sending...';
   btn.disabled = true;
-
   setTimeout(() => {
     text.textContent = 'Send Message';
     btn.disabled = false;
@@ -270,8 +262,7 @@ const sectionObserver = new IntersectionObserver((entries) => {
       const id = entry.target.id;
       navItems.forEach(link => {
         link.style.color = link.getAttribute('href') === `#${id}`
-          ? 'var(--neon-purple)'
-          : '';
+          ? 'var(--neon-purple)' : '';
       });
     }
   });
@@ -283,28 +274,19 @@ sections.forEach(s => sectionObserver.observe(s));
 /* ─── PROJECT CARD TILT ─── */
 document.querySelectorAll('.project-card').forEach(card => {
   card.addEventListener('mousemove', (e) => {
-    const rect   = card.getBoundingClientRect();
-    const cx     = rect.left + rect.width  / 2;
-    const cy     = rect.top  + rect.height / 2;
-    const dx     = (e.clientX - cx) / (rect.width  / 2);
-    const dy     = (e.clientY - cy) / (rect.height / 2);
-    card.style.transform = `
-      translateY(-6px)
-      rotateX(${-dy * 4}deg)
-      rotateY(${dx  * 4}deg)
-    `;
+    const rect = card.getBoundingClientRect();
+    const cx   = rect.left + rect.width  / 2;
+    const cy   = rect.top  + rect.height / 2;
+    const dx   = (e.clientX - cx) / (rect.width  / 2);
+    const dy   = (e.clientY - cy) / (rect.height / 2);
+    card.style.transform  = `translateY(-6px) rotateX(${-dy * 4}deg) rotateY(${dx * 4}deg)`;
     card.style.transition = 'none';
   });
-
   card.addEventListener('mouseleave', () => {
     card.style.transform  = '';
     card.style.transition = '';
   });
 });
-
-
-/* ─── TYPING EFFECT FOR HERO EYEBROW ─── */
-// Already handled with CSS blink
 
 
 /* ─── PAGE LOAD PROGRESS BAR ─── */
@@ -318,53 +300,116 @@ bar.style.cssText = `
 document.body.appendChild(bar);
 
 window.addEventListener('scroll', () => {
-  const scrolled = window.scrollY;
+  const scrolled  = window.scrollY;
   const maxScroll = document.body.scrollHeight - window.innerHeight;
-  const pct = (scrolled / maxScroll) * 100;
-  bar.style.width = pct + '%';
+  bar.style.width = ((scrolled / maxScroll) * 100) + '%';
 });
 
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   LOADING SCREEN — appended below existing code
+   LOADING SCREEN
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 (function () {
-  const overlay  = document.getElementById('loaderOverlay');
-  const barFill  = document.getElementById('loaderBarFill');
-
+  const overlay = document.getElementById('loaderOverlay');
+  const barFill = document.getElementById('loaderBarFill');
   if (!overlay || !barFill) return;
 
-  /* Total loader duration = 2400ms fill + 750ms slide-out */
-  const DURATION = 2400;   // ms for bar to go 0 → 100%
-  const INTERVAL = 18;     // tick every 18ms (≈60fps)
+  const DURATION = 2400;
+  const INTERVAL = 18;
   const STEPS    = DURATION / INTERVAL;
+  let current    = 0;
 
-  let current = 0;
-
-  /* Eased fill — starts fast, eases near the end for premium feel */
   function easeOutExpo(t) {
     return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
   }
 
   const ticker = setInterval(() => {
     current++;
-    const progress = easeOutExpo(current / STEPS);
-    barFill.style.width = (progress * 100) + '%';
-
+    barFill.style.width = (easeOutExpo(current / STEPS) * 100) + '%';
     if (current >= STEPS) {
       clearInterval(ticker);
       barFill.style.width = '100%';
-
-      /* Small pause at 100% before sliding out */
       setTimeout(() => {
         overlay.classList.add('slide-out');
-
-        /* Remove from DOM after animation finishes */
-        setTimeout(() => {
-          overlay.style.display = 'none';
-        }, 800);
+        setTimeout(() => { overlay.style.display = 'none'; }, 800);
       }, 220);
     }
   }, INTERVAL);
+})();
+
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   HERO TYPEWRITER SEQUENCE
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+(function () {
+
+  /* ── Config ── */
+  // Raw text — "Aman." will be wrapped in <em> for purple color
+  const FULL_TEXT    = "Hi, I'm Aman.";
+  const NEON_WORD    = "Aman.";           // this part gets neon-purple <em>
+  const CHAR_DELAY   = 60;               // ms per character
+  const START_DELAY  = 2900;             // ms — starts after loader finishes
+
+  /* ── Elements ── */
+  const typeEl   = document.getElementById('heroTypewriter');
+  const cursorEl = document.getElementById('heroCursor');
+  const line2    = document.getElementById('heroLine2');
+  const line3    = document.getElementById('heroLine3');
+  const subEl    = document.getElementById('heroSub');
+  const actionsEl= document.getElementById('heroActions');
+  const socialEl = document.getElementById('heroSocial');
+
+  if (!typeEl || !cursorEl) return;
+
+  /* ── Build HTML safely — split at "Aman." ── */
+  const neonStart = FULL_TEXT.indexOf(NEON_WORD);
+
+  function buildHTML(charsTyped) {
+    const slice = FULL_TEXT.slice(0, charsTyped);
+    if (neonStart === -1 || charsTyped <= neonStart) {
+      return slice;
+    }
+    const before = FULL_TEXT.slice(0, neonStart);
+    const neon   = slice.slice(neonStart);
+    return before + '<em>' + neon + '</em>';
+  }
+
+  /* ── Typewriter ── */
+  function startTyping() {
+    let i = 0;
+    const type = () => {
+      if (i <= FULL_TEXT.length) {
+        typeEl.innerHTML = buildHTML(i);
+        i++;
+        setTimeout(type, CHAR_DELAY);
+      } else {
+        // Typing done — hide cursor after short pause
+        setTimeout(() => {
+          cursorEl.classList.add('hide');
+          revealRestOfHero();
+        }, 350);
+      }
+    };
+    type();
+  }
+
+  /* ── Reveal remaining elements in sequence ── */
+  function revealRestOfHero() {
+    // Line 2 slides in
+    setTimeout(() => { line2 && line2.classList.add('visible'); }, 0);
+    // Line 3 slides in
+    setTimeout(() => { line3 && line3.classList.add('visible'); }, 180);
+    // Subtitle fades in
+    setTimeout(() => { subEl && subEl.classList.add('visible'); }, 420);
+    // Buttons fade in
+    setTimeout(() => { actionsEl && actionsEl.classList.add('visible'); }, 650);
+    // Social chip
+    setTimeout(() => { socialEl && socialEl.classList.add('visible'); }, 820);
+  }
+
+  /* ── Kick off after loader finishes ── */
+  setTimeout(startTyping, START_DELAY);
+
 })();

@@ -129,7 +129,7 @@ body {
   font-size: 14px;
 }
 
-/* ─── REVEAL ANIMATION ─── */
+/* ─── REVEAL ANIMATION (used by about/skills/projects/contact — untouched) ─── */
 .reveal {
   opacity: 0;
   transform: translateY(30px);
@@ -310,6 +310,7 @@ body {
   margin-bottom: 1.5rem;
   display: flex;
   flex-direction: column;
+  gap: 0.05em;
 }
 .hero-title em { font-style: normal; color: var(--neon-purple); }
 
@@ -349,21 +350,91 @@ body {
   background: rgba(168,85,247,0.07);
 }
 
-/* Line reveal */
-.line-reveal {
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   HERO ANIMATIONS — NEW (replaces line-reveal)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* 1. Eyebrow fades in first */
+.hero-anim-1 {
+  opacity: 0;
+  animation: heroFadeUp 0.7s cubic-bezier(0.4,0,0.2,1) 0.2s forwards;
+}
+
+/* 2. Typewriter wrap — holds both the typed text + cursor */
+.hero-typewriter-wrap {
+  display: block;
+  min-height: 1.1em;
+  position: relative;
+}
+
+/* Blinking cursor next to typed text */
+.hero-cursor {
+  display: inline-block;
+  color: var(--neon-purple);
+  font-weight: 300;
+  margin-left: 2px;
+  animation: cursorBlink 0.75s step-end infinite;
+  text-shadow: 0 0 10px var(--neon-purple);
+}
+.hero-cursor.hide { opacity: 0; }
+
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* "Aman." in neon purple inside typewriter */
+#heroTypewriter em {
+  font-style: normal;
+  color: var(--neon-purple);
+}
+
+/* 3. Lines 2 & 3 — slide up after typewriter */
+.hero-line-slide {
   display: block;
   opacity: 0;
-  transform: translateY(25px);
-  animation: lineReveal 0.8s cubic-bezier(0.4,0,0.2,1) forwards;
+  transform: translateY(22px);
+  transition: opacity 0.65s cubic-bezier(0.4,0,0.2,1),
+              transform 0.65s cubic-bezier(0.4,0,0.2,1);
 }
-.delay-1 { animation-delay: 0.15s; }
-.delay-2 { animation-delay: 0.3s; }
-.delay-3 { animation-delay: 0.45s; }
-.delay-4 { animation-delay: 0.6s; }
-.delay-5 { animation-delay: 0.75s; }
+.hero-line-slide.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
 
-@keyframes lineReveal {
-  to { opacity: 1; transform: translateY(0); }
+/* 4. Subtitle — clean fade in */
+.hero-sub-fade {
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+.hero-sub-fade.visible { opacity: 1; }
+
+/* 5. Buttons — fade + slight rise */
+.hero-actions-fade {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.65s ease, transform 0.65s ease;
+}
+.hero-actions-fade.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 6. Social chip — same */
+.hero-social-fade {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.hero-social-fade.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Shared fade-up keyframe */
+@keyframes heroFadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0);    }
 }
 
 /* Scroll hint */
@@ -379,7 +450,8 @@ body {
   color: var(--text-faint);
   font-size: 9px;
   letter-spacing: 0.2em;
-  animation: fadeIn 1.5s 1.2s both;
+  opacity: 0;
+  animation: heroFadeUp 0.8s ease 3.8s forwards;
 }
 .scroll-line {
   width: 1px; height: 40px;
@@ -390,7 +462,6 @@ body {
   0%,100% { opacity: 0.3; transform: scaleY(1); }
   50% { opacity: 1; transform: scaleY(1.1); }
 }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 /* ─── ABOUT ─── */
 .about { background: var(--bg-2); }
@@ -555,10 +626,7 @@ body {
   justify-content: space-between;
   gap: 1rem;
 }
-.skill-level {
-  font-size: 12px;
-  color: var(--text-muted);
-}
+.skill-level { font-size: 12px; color: var(--text-muted); }
 
 .skill-bar {
   height: 4px;
@@ -798,7 +866,7 @@ body {
   border-radius: 8px;
   background: rgba(6,182,212,0.08);
   border: 1px solid rgba(6,182,212,0.2);
-  animation: fadeIn 0.4s ease;
+  animation: heroFadeUp 0.4s ease;
 }
 
 /* ─── FOOTER ─── */
@@ -890,7 +958,7 @@ body {
 
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   LOADING SCREEN — appended below existing styles
+   LOADING SCREEN
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 .loader-overlay {
@@ -902,7 +970,6 @@ body {
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  /* Slide up transition */
   transition: transform 0.75s cubic-bezier(0.76, 0, 0.24, 1), opacity 0.6s ease;
 }
 
@@ -918,7 +985,6 @@ body {
   gap: 2.5rem;
 }
 
-/* ── Logo ── */
 .loader-logo {
   position: relative;
   font-family: 'Syne', sans-serif;
@@ -939,37 +1005,24 @@ body {
 
 .loader-logo-glow {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(
-    ellipse at center,
-    rgba(168, 85, 247, 0.18) 0%,
-    transparent 65%
-  );
+  width: 200%; height: 200%;
+  background: radial-gradient(ellipse at center, rgba(168,85,247,0.18) 0%, transparent 65%);
   pointer-events: none;
   animation: loaderGlowPulse 2s ease-in-out infinite;
 }
 
 @keyframes loaderLogoPop {
-  from {
-    opacity: 0;
-    transform: scale(0.7) translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+  from { opacity: 0; transform: scale(0.7) translateY(20px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 @keyframes loaderGlowPulse {
-  0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1);   }
+  0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1);    }
   50%       { opacity: 1;   transform: translate(-50%, -50%) scale(1.15); }
 }
 
-/* ── Bar wrap ── */
 .loader-bar-wrap {
   display: flex;
   flex-direction: column;
@@ -984,31 +1037,27 @@ body {
   to   { opacity: 1; transform: translateY(0);    }
 }
 
-/* ── Track ── */
 .loader-bar-track {
   width: 100%;
   height: 3px;
-  background: rgba(168, 85, 247, 0.12);
+  background: rgba(168,85,247,0.12);
   border-radius: 2px;
   overflow: hidden;
-  position: relative;
 }
 
-/* ── Fill ── */
 .loader-bar-fill {
   height: 100%;
   width: 0%;
   background: linear-gradient(90deg, #6366f1, #a855f7, #06b6d4);
   border-radius: 2px;
-  box-shadow: 0 0 12px rgba(168, 85, 247, 0.7);
+  box-shadow: 0 0 12px rgba(168,85,247,0.7);
   transition: width 0.08s linear;
 }
 
-/* ── Site name label ── */
 .loader-site-name {
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
   letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: rgba(168, 85, 247, 0.55);
+  color: rgba(168,85,247,0.55);
 }
