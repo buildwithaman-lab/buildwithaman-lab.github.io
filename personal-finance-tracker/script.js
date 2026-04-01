@@ -1,4 +1,6 @@
-Chart.defaults.devicePixelRatio = window.devicePixelRatio || 2;
+if (typeof Chart !== 'undefined') {
+  Chart.defaults.devicePixelRatio = window.devicePixelRatio || 2;
+}
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    PERSONAL FINANCE TRACKER — script.js
    Part 1: Core Logic + Data Management
@@ -16,9 +18,7 @@ const SYMBOLS = { INR: '₹', USD: '$' };
 
 /* ─── DOM ELEMENTS ─── */
 const $ = (sel) => document.querySelector(sel);
-const 
-$$
-= (sel) => document.querySelectorAll(sel);
+const $$ = (sel) => document.querySelectorAll(sel);
 
 const totalBalanceEl   = $('#totalBalance');
 const totalIncomeEl    = $('#totalIncome');
@@ -77,17 +77,18 @@ function saveData() {
 }
 
 function setDefaultDate() {
-  const today = new Date().toISOString().split('T')[0];
-  dateInput.value = today;
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  dateInput.setAttribute('value', `${yyyy}-${mm}-${dd}`);
+  dateInput.value = `${yyyy}-${mm}-${dd}`;
 }
 
 /* ─── CURRENCY TOGGLE ─── */
-$$
-('.currency-btn').forEach(btn => {
+$$('.currency-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    
-$$
-('.currency-btn').forEach(b => b.classList.remove('active'));
+    $$('.currency-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     currency = btn.dataset.currency;
     saveData();
@@ -97,8 +98,7 @@ $$
 });
 
 function initCurrency() {
-$$
-('.currency-btn').forEach(btn => {
+  $$('.currency-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.currency === currency);
   });
 }
@@ -108,19 +108,39 @@ typeSelect.addEventListener('change', () => {
   updateCategoryOptions();
 });
 
-function updateCategoryOptions() {
-  const type = typeSelect.value;
-  const incomeGroup = $('#incomeCategories');
-  const expenseGroup = $('#expenseCategories');
+const INCOME_CATEGORIES = [
+  { value: 'Salary',       label: '💼 Salary' },
+  { value: 'Freelance',    label: '💻 Freelance' },
+  { value: 'Investment',   label: '📈 Investment' },
+  { value: 'Gift',         label: '🎁 Gift' },
+  { value: 'Other Income', label: '📦 Other' }
+];
 
-  if (type === 'income') {
-    incomeGroup.style.display = '';
-    expenseGroup.style.display = 'none';
-    categorySelect.value = incomeGroup.querySelector('option').value;
+const EXPENSE_CATEGORIES = [
+  { value: 'Food',              label: '🍔 Food' },
+  { value: 'Rent',              label: '🏠 Rent' },
+  { value: 'Transport',         label: '🚗 Transport' },
+  { value: 'Shopping',          label: '🛒 Shopping' },
+  { value: 'Entertainment',     label: '🎬 Entertainment' },
+  { value: 'Bills & Utilities', label: '💡 Bills & Utilities' },
+  { value: 'Recharge',          label: '📱 Recharge' },
+  { value: 'Health',            label: '💊 Health' },
+  { value: 'Education',         label: '📚 Education' },
+  { value: 'Other Expense',     label: '📦 Other' }
+];
+
+function updateCategoryOptions(selectedValue) {
+  const type = typeSelect.value;
+  const cats = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+
+  categorySelect.innerHTML = cats.map(c =>
+    `<option value="${c.value}">${c.label}</option>`
+  ).join('');
+
+  if (selectedValue && cats.some(c => c.value === selectedValue)) {
+    categorySelect.value = selectedValue;
   } else {
-    incomeGroup.style.display = 'none';
-    expenseGroup.style.display = '';
-    categorySelect.value = expenseGroup.querySelector('option').value;
+    categorySelect.value = cats[0].value;
   }
 }
 
@@ -209,8 +229,7 @@ function editTransaction(id) {
 
   editingId = id;
   typeSelect.value = t.type;
-  updateCategoryOptions();
-  categorySelect.value = t.category;
+  updateCategoryOptions(t.category);
   amountInput.value = t.amount;
   dateInput.value = t.date;
   notesInput.value = t.notes || '';
