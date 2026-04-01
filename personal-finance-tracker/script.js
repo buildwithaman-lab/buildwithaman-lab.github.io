@@ -1,6 +1,3 @@
-if (typeof Chart !== 'undefined') {
-  Chart.defaults.devicePixelRatio = window.devicePixelRatio || 2;
-}
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    PERSONAL FINANCE TRACKER — script.js
    Part 1: Core Logic + Data Management
@@ -302,11 +299,42 @@ filterType.addEventListener('change', updateHistory);
 let pieChart = null;
 let barChart = null;
 
+// Sharp DPR fix applied once at load
+if (typeof Chart !== 'undefined') {
+  Chart.defaults.devicePixelRatio = Math.max(window.devicePixelRatio || 1, 2);
+}
+
+// Neon glow plugin — draws a soft shadow behind each arc/bar
+const neonGlowPlugin = {
+  id: 'neonGlow',
+  beforeDatasetsDraw(chart) {
+    const ctx = chart.ctx;
+    ctx.save();
+    ctx.shadowBlur = 18;
+    ctx.shadowColor = 'rgba(168,85,247,0.55)';
+  },
+  afterDatasetsDraw(chart) {
+    chart.ctx.restore();
+  }
+};
+
+// Neon color palette — purple→blue→cyan→green gradient feel
 const chartColors = [
-  '#a855f7', '#3b82f6', '#06b6d4', '#22c55e',
-  '#eab308', '#ef4444', '#f97316', '#ec4899',
-  '#8b5cf6', '#14b8a6'
+  '#d946ef', '#a855f7', '#6366f1', '#2563eb',
+  '#06b6d4', '#10b981', '#f59e0b', '#ef4444',
+  '#ec4899', '#8b5cf6'
 ];
+
+// Shared tooltip style
+const tooltipDefaults = {
+  backgroundColor: '#0d1120',
+  titleColor: '#f0f9ff',
+  bodyColor: '#94a3b8',
+  borderColor: 'rgba(168,85,247,0.4)',
+  borderWidth: 1,
+  padding: 10,
+  cornerRadius: 8
+};
 
 function updatePieChart() {
   const expenses = transactions.filter(t => t.type === 'expense');
@@ -324,49 +352,55 @@ function updatePieChart() {
   });
 
   const labels = Object.keys(categoryTotals);
-  const data = Object.values(categoryTotals);
-  const ctx = document.getElementById('pieChart').getContext('2d');
+  const data   = Object.values(categoryTotals);
+  const colors = chartColors.slice(0, labels.length);
+  const ctx    = document.getElementById('pieChart').getContext('2d');
 
   if (pieChart) pieChart.destroy();
 
   pieChart = new Chart(ctx, {
     type: 'doughnut',
+    plugins: [neonGlowPlugin],
     data: {
-      labels: labels,
+      labels,
       datasets: [{
-        data: data,
-        backgroundColor: chartColors.slice(0, labels.length),
+        data,
+        backgroundColor: colors,
         borderColor: '#080b12',
         borderWidth: 3,
-        hoverBorderColor: '#a855f7',
-        hoverBorderWidth: 2
+        hoverBackgroundColor: colors.map(c => c + 'dd'),
+        hoverBorderColor: '#fff',
+        hoverBorderWidth: 2,
+        hoverOffset: 10
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      animation: {
+        animateRotate: true,
+        animateScale: true,
+        duration: 900,
+        easing: 'easeOutQuart'
+      },
       plugins: {
         legend: {
           position: 'bottom',
           labels: {
-            color: '#64748b',
+            color: '#94a3b8',
             font: { family: "'JetBrains Mono', monospace", size: 11 },
-            padding: 15,
+            padding: 14,
             usePointStyle: true,
             pointStyleWidth: 8
           }
         },
         tooltip: {
-          backgroundColor: '#111827',
-          titleColor: '#e2e8f0',
-          bodyColor: '#e2e8f0',
-          borderColor: 'rgba(168,85,247,0.3)',
-          borderWidth: 1,
+          ...tooltipDefaults,
           callbacks: {
-            label: function(context) {
+            label(context) {
               const total = data.reduce((a, b) => a + b, 0);
-              const percent = ((context.parsed / total) * 100).toFixed(1);
-              return ` ${context.label}: ${formatAmount(context.parsed)} (${percent}%)`;
+              const pct = ((context.parsed / total) * 100).toFixed(1);
+              return `  ${context.label}: ${formatAmount(context.parsed)}  (${pct}%)`;
             }
           }
         }
@@ -386,71 +420,87 @@ function updateBarChart() {
 
   const monthlyData = {};
   transactions.forEach(t => {
-    const date = new Date(t.date);
-    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    const d   = new Date(t.date + 'T00:00:00');
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
     if (!monthlyData[key]) monthlyData[key] = { income: 0, expense: 0 };
     monthlyData[key][t.type] += Number(t.amount);
   });
 
-  const sortedKeys = Object.keys(monthlyData).sort();
-  const labels = sortedKeys.map(k => {
+  const sortedKeys  = Object.keys(monthlyData).sort();
+  const labels      = sortedKeys.map(k => {
     const [y, m] = k.split('-');
     return new Date(y, m - 1).toLocaleDateString('en-IN', { month: 'short', year: '2-digit' });
   });
-
-  const incomeData = sortedKeys.map(k => monthlyData[k].income);
+  const incomeData  = sortedKeys.map(k => monthlyData[k].income);
   const expenseData = sortedKeys.map(k => monthlyData[k].expense);
-  const ctx = document.getElementById('barChart').getContext('2d');
+  const ctx         = document.getElementById('barChart').getContext('2d');
+
+  // Neon gradient fills
+  const incomeGrad  = ctx.createLinearGradient(0, 0, 0, 280);
+  incomeGrad.addColorStop(0,   'rgba(16,185,129,0.95)');
+  incomeGrad.addColorStop(1,   'rgba(16,185,129,0.25)');
+
+  const expenseGrad = ctx.createLinearGradient(0, 0, 0, 280);
+  expenseGrad.addColorStop(0,  'rgba(217,70,239,0.95)');
+  expenseGrad.addColorStop(1,  'rgba(217,70,239,0.20)');
 
   if (barChart) barChart.destroy();
 
   barChart = new Chart(ctx, {
     type: 'bar',
+    plugins: [neonGlowPlugin],
     data: {
-      labels: labels,
+      labels,
       datasets: [
         {
           label: 'Income',
           data: incomeData,
-          backgroundColor: 'rgba(34,197,94,1)',
-          borderColor: '#22c55e',
+          backgroundColor: incomeGrad,
+          borderColor: '#10b981',
           borderWidth: 1,
           borderRadius: 6,
-          borderSkipped: false
+          borderSkipped: false,
+          hoverBackgroundColor: 'rgba(16,185,129,1)',
+          hoverBorderWidth: 2
         },
         {
           label: 'Expense',
           data: expenseData,
-          backgroundColor: 'rgba(239,68,68,1)',
-          borderColor: '#ef4444',
+          backgroundColor: expenseGrad,
+          borderColor: '#d946ef',
           borderWidth: 1,
           borderRadius: 6,
-          borderSkipped: false
+          borderSkipped: false,
+          hoverBackgroundColor: 'rgba(217,70,239,1)',
+          hoverBorderWidth: 2
         }
       ]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      animation: {
+        delay(ctx) { return ctx.dataIndex * 60; },
+        duration: 700,
+        easing: 'easeOutQuart',
+        from: 0           // bars grow from bottom
+      },
       plugins: {
         legend: {
           position: 'top',
           labels: {
-            color: '#64748b',
+            color: '#94a3b8',
             font: { family: "'JetBrains Mono', monospace", size: 11 },
             usePointStyle: true,
-            pointStyleWidth: 8
+            pointStyleWidth: 8,
+            padding: 16
           }
         },
         tooltip: {
-          backgroundColor: '#111827',
-          titleColor: '#e2e8f0',
-          bodyColor: '#e2e8f0',
-          borderColor: 'rgba(168,85,247,0.3)',
-          borderWidth: 1,
+          ...tooltipDefaults,
           callbacks: {
-            label: function(context) {
-              return ` ${context.dataset.label}: ${formatAmount(context.parsed.y)}`;
+            label(context) {
+              return `  ${context.dataset.label}: ${formatAmount(context.parsed.y)}`;
             }
           }
         }
@@ -458,15 +508,17 @@ function updateBarChart() {
       scales: {
         x: {
           ticks: { color: '#64748b', font: { size: 10 } },
-          grid: { color: 'rgba(255,255,255,0.04)' }
+          grid:  { color: 'rgba(255,255,255,0.04)' },
+          border: { color: 'rgba(255,255,255,0.06)' }
         },
         y: {
           ticks: {
             color: '#64748b',
             font: { size: 10 },
-            callback: function(value) { return getSymbol() + value; }
+            callback: v => getSymbol() + v.toLocaleString('en-IN')
           },
-          grid: { color: 'rgba(255,255,255,0.04)' }
+          grid:  { color: 'rgba(255,255,255,0.06)' },
+          border: { color: 'rgba(255,255,255,0.06)' }
         }
       }
     }
