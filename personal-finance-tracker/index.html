@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personal Finance Tracker | buildwithaman-lab</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <!-- Chart.js for graphs -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- ─── HEADER ─── -->
+  <header class="tracker-header">
+    <div class="header-left">
+      <a href="../index.html" class="back-link">
+        <span class="back-arrow">&larr;</span>
+        <span>Portfolio</span>
+      </a>
+    </div>
+    <div class="header-center">
+      <h1 class="tracker-title">
+        <span class="title-icon">💰</span>
+        Personal Finance Tracker
+      </h1>
+    </div>
+    <div class="header-right">
+      <div class="currency-toggle">
+        <button class="currency-btn active" data-currency="INR">₹ INR</button>
+        <button class="currency-btn" data-currency="USD">$ USD</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ─── SUMMARY CARDS ─── -->
+  <section class="summary-section">
+    <div class="container">
+      <div class="summary-grid">
+
+        <div class="summary-card balance-card">
+          <div class="card-glow balance-glow"></div>
+          <div class="card-icon">💵</div>
+          <div class="card-info">
+            <span class="card-label">Total Balance</span>
+            <span class="card-amount" id="totalBalance">
+              <span class="currency-symbol">₹</span>0.00
+            </span>
+          </div>
+        </div>
+
+        <div class="summary-card income-card">
+          <div class="card-glow income-glow"></div>
+          <div class="card-icon">📈</div>
+          <div class="card-info">
+            <span class="card-label">Total Income</span>
+            <span class="card-amount" id="totalIncome">
+              <span class="currency-symbol">₹</span>0.00
+            </span>
+          </div>
+        </div>
+
+        <div class="summary-card expense-card">
+          <div class="card-glow expense-glow"></div>
+          <div class="card-icon">📉</div>
+          <div class="card-info">
+            <span class="card-label">Total Expenses</span>
+            <span class="card-amount" id="totalExpense">
+              <span class="currency-symbol">₹</span>0.00
+            </span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── ADD TRANSACTION FORM ─── -->
+  <section class="form-section">
+    <div class="container">
+      <h2 class="section-heading">
+        <span class="heading-icon">➕</span>
+        Add Transaction
+      </h2>
+      <form class="transaction-form" id="transactionForm">
+        <div class="form-row">
+
+          <div class="form-group">
+            <label for="type">Type</label>
+            <select id="type" required>
+              <option value="income">💚 Income</option>
+              <option value="expense">❤️ Expense</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="category">Category</label>
+            <select id="category" required>
+              <!-- Income categories -->
+              <optgroup label="Income" id="incomeCategories">
+                <option value="Salary">💼 Salary</option>
+                <option value="Freelance">💻 Freelance</option>
+                <option value="Investment">📈 Investment</option>
+                <option value="Gift">🎁 Gift</option>
+                <option value="Other Income">📦 Other</option>
+              </optgroup>
+              <!-- Expense categories -->
+              <optgroup label="Expense" id="expenseCategories">
+                <option value="Food">🍔 Food</option>
+                <option value="Rent">🏠 Rent</option>
+                <option value="Transport">🚗 Transport</option>
+                <option value="Shopping">🛒 Shopping</option>
+                <option value="Entertainment">🎬 Entertainment</option>
+                <option value="Bills & Utilities">💡 Bills & Utilities</option>
+                <option value="Recharge">📱 Recharge</option>
+                <option value="Health">💊 Health</option>
+                <option value="Education">📚 Education</option>
+                <option value="Other Expense">📦 Other</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="amount">Amount</label>
+            <input type="number" id="amount" placeholder="0.00" min="0" step="0.01" required />
+          </div>
+
+          <div class="form-group">
+            <label for="date">Date</label>
+            <input type="date" id="date" required />
+          </div>
+
+        </div>
+
+        <div class="form-row">
+          <div class="form-group notes-group">
+            <label for="notes">Notes (Optional)</label>
+            <input type="text" id="notes" placeholder="e.g. Lunch with friends..." />
+          </div>
+
+          <button type="submit" class="btn btn-primary add-btn" id="formSubmitBtn">
+            <span class="btn-text">Add Transaction</span>
+            <span class="btn-icon">+</span>
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </section>
+
+  <!-- ─── CHARTS SECTION ─── -->
+  <section class="charts-section">
+    <div class="container">
+      <h2 class="section-heading">
+        <span class="heading-icon">📊</span>
+        Analytics
+      </h2>
+      <div class="charts-grid">
+
+        <div class="chart-card">
+          <h3 class="chart-title">Category Breakdown</h3>
+          <div class="chart-wrap">
+            <canvas id="pieChart"></canvas>
+          </div>
+          <p class="empty-chart-msg" id="pieEmpty">Add transactions to see chart 📈</p>
+        </div>
+
+        <div class="chart-card">
+          <h3 class="chart-title">Monthly Overview</h3>
+          <div class="chart-wrap">
+            <canvas id="barChart"></canvas>
+          </div>
+          <p class="empty-chart-msg" id="barEmpty">Add transactions to see chart 📊</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── BUDGET SECTION ─── -->
+  <section class="budget-section">
+    <div class="container">
+      <h2 class="section-heading">
+        <span class="heading-icon">🎯</span>
+        Budget Manager
+      </h2>
+
+      <div class="budget-form-wrap">
+        <form class="budget-form" id="budgetForm">
+          <div class="form-group">
+            <label for="budgetCategory">Category</label>
+            <select id="budgetCategory">
+              <option value="Food">🍔 Food</option>
+              <option value="Rent">🏠 Rent</option>
+              <option value="Transport">🚗 Transport</option>
+              <option value="Shopping">🛒 Shopping</option>
+              <option value="Entertainment">🎬 Entertainment</option>
+              <option value="Bills & Utilities">💡 Bills & Utilities</option>
+              <option value="Recharge">📱 Recharge</option>
+              <option value="Health">💊 Health</option>
+              <option value="Education">📚 Education</option>
+              <option value="Other Expense">📦 Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="budgetAmount">Monthly Limit</label>
+            <input type="number" id="budgetAmount" placeholder="0.00" min="0" step="0.01" required />
+          </div>
+          <button type="submit" class="btn btn-primary">Set Budget</button>
+        </form>
+      </div>
+
+      <div class="budget-bars" id="budgetBars">
+        <p class="empty-budget-msg" id="budgetEmpty">No budgets set yet. Set a budget above! 🎯</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ─── TRANSACTION HISTORY ─── -->
+  <section class="history-section">
+    <div class="container">
+      <h2 class="section-heading">
+        <span class="heading-icon">📋</span>
+        Transaction History
+      </h2>
+
+      <div class="history-controls">
+        <input type="text" class="search-input" id="searchInput" placeholder="🔍 Search transactions..." />
+        <select class="filter-select" id="filterType">
+          <option value="all">All</option>
+          <option value="income">Income</option>
+          <option value="expense">Expense</option>
+        </select>
+      </div>
+
+      <div class="table-wrap">
+        <table class="history-table" id="historyTable">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Type</th>
+              <th>Category</th>
+              <th>Amount</th>
+              <th>Notes</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="historyBody">
+            <!-- Transactions will be added here by JS -->
+          </tbody>
+        </table>
+        <p class="empty-table-msg" id="tableEmpty">
+          No transactions yet. Start adding! 🚀
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ─── EXPORT SECTION ─── -->
+  <section class="export-section">
+    <div class="container">
+      <div class="export-wrap">
+        <button class="btn btn-ghost export-btn" id="exportCSV">
+          <span>📥 Export CSV</span>
+        </button>
+        <button class="btn btn-ghost export-btn" id="exportPDF">
+          <span>📄 Export PDF</span>
+        </button>
+        <button class="btn btn-danger reset-btn" id="resetAll">
+          <span>⚠️ Reset All Data</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── FOOTER ─── -->
+  <footer class="tracker-footer">
+    <div class="container">
+      <p>Built with 💜 by
+        <a href="../index.html" class="footer-link">
+          <span class="logo-bracket">&lt;</span>aman<span class="logo-bracket">/&gt;</span>
+        </a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
